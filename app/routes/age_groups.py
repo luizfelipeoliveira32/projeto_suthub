@@ -1,4 +1,4 @@
-from auth.basic_auth import basic_auth
+from auth import authenticate
 from bson import ObjectId
 from database import age_groups_collection
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -7,14 +7,14 @@ from models.age_group_in_out import AgeGroupIn, AgeGroupOut
 router = APIRouter()
 
 # Criar faixa etária
-@router.post("/age-groups", response_model=AgeGroupOut, status_code=status.HTTP_201_CREATED)
-#trecho a ser inserido: , dependencies=[Depends(basic_auth)]
+@router.post("/age-groups", response_model=AgeGroupOut, status_code=status.HTTP_201_CREATED, 
+             dependencies=[Depends(authenticate)])
 async def create_age_group(data: AgeGroupIn):
     result = await age_groups_collection.insert_one(data.dict())
     return AgeGroupOut(id=str(result.inserted_id), **data.dict())
 
 # Listar faixas etárias
-@router.get("/age-groups", response_model=list[AgeGroupOut])
+@router.get("/age-groups", response_model=list[AgeGroupOut], dependencies=[Depends(authenticate)])
 async def list_age_groups():
     age_groups = []
     async for group in age_groups_collection.find():
@@ -28,7 +28,7 @@ async def list_age_groups():
     return age_groups
 
 # Buscar faixa etária por ID
-@router.get("/age-groups/{group_id}", response_model=AgeGroupOut)
+@router.get("/age-groups/{group_id}", response_model=AgeGroupOut, dependencies=[Depends(authenticate)])
 async def get_age_group(group_id: str):
     group = await age_groups_collection.find_one({"_id": ObjectId(group_id)})
     if not group:
@@ -40,7 +40,7 @@ async def get_age_group(group_id: str):
     )
 
 # Atualizar faixa etária por ID
-@router.put("/age-groups/{group_id}", response_model=AgeGroupOut)
+@router.put("/age-groups/{group_id}", response_model=AgeGroupOut, dependencies=[Depends(authenticate)])
 async def update_age_group(group_id: str, data: AgeGroupIn):
     result = await age_groups_collection.update_one(
         {"_id": ObjectId(group_id)},
@@ -51,31 +51,10 @@ async def update_age_group(group_id: str, data: AgeGroupIn):
     return AgeGroupOut(id=group_id, **data.dict())
 
 # Deletar faixa etária
-@router.delete("/age-groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/age-groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT, 
+               dependencies=[Depends(authenticate)])
 async def delete_age_group(group_id: str):
     result = await age_groups_collection.delete_one({"_id": ObjectId(group_id)})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Age group not found")
     return None
-
-
-'''@app.post("/age-groups")
-async def create_age_group(data: AgeGroupIn):
-    result = await age_groups_collection.insert_one(data.dict())
-    return {"id": str(result.inserted_id)}
-
-@app.get("/age-groups")
-async def list_age_groups():
-    age_groups = []
-    async for ag in age_groups_collection.find():
-        ag["ID"] = str(ag["_id"])
-        del ag["_id"]
-        age_groups.append(ag)
-    return age_groups
-
-@app.delete("/age-groups/{group_id}")
-async def delete_age_group(group_id: str):
-    result = await age_groups_collection.delete_one({"_id": ObjectId(group_id)})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Age group not found")
-    return {"status": "deleted"}'''
