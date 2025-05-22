@@ -1,8 +1,8 @@
-from auth import authenticate
+from app.auth import authenticate
 from bson import ObjectId
-from database import age_groups_collection
+from app.database import age_groups_collection
 from fastapi import APIRouter, Depends, HTTPException, status
-from models.age_group_in_out import AgeGroupIn, AgeGroupOut
+from app.models.age_group_in_out import AgeGroupIn, AgeGroupOut
 
 router = APIRouter()
 

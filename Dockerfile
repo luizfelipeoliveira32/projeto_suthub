@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ./app /app
+# ⬇️ Copia TUDO, incluindo /app e /processor
+COPY . .
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# ⬇️ Esse CMD serve apenas para a API. O processor usa "command" no docker-compose.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

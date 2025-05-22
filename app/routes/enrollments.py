@@ -1,8 +1,8 @@
-from auth import authenticate
+from app.auth import authenticate
 from fastapi import APIRouter, Depends, HTTPException, status
-from database import age_groups_collection, enrollments_collection
-from models.enrollment_request import EnrollmentRequest 
-from models.enrollment_status import EnrollmentStatus
+from app.database import age_groups_collection, enrollments_collection
+from app.models.enrollment_request import EnrollmentRequest 
+from app.models.enrollment_status import EnrollmentStatus
 
 router = APIRouter()
 

@@ -1,21 +1,23 @@
-from bson import ObjectId
-from database import age_groups_collection, enrollments_collection
-from fastapi import FastAPI, HTTPException, Depends
+#from bson import ObjectId
+#from database import age_groups_collection, enrollments_collection
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.openapi.utils import get_openapi
-from models.age_group_in_out import AgeGroupIn, AgeGroupOut 
-from models.enrollment_request import EnrollmentRequest
-from models.enrollment_status import EnrollmentStatus
-from routes import age_groups, enrollments
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+#from models.age_group_in_out import AgeGroupIn, AgeGroupOut 
+#from models.enrollment_request import EnrollmentRequest
+#from models.enrollment_status import EnrollmentStatus
+from app.routes import age_groups, enrollments
 
 app = FastAPI(title="API for SUTHUB's case")
 
-@app.get("/")
-def read_root():
-    return {"message": "FastAPI + MongoDB funcionando!"}
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+templates = Jinja2Templates(directory="app/templates")
 
-
-#app.include_router(age_groups.router)
-#app.include_router(enrollments.router)
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 app.include_router(age_groups.router, prefix="/age-groups", tags=["Age Groups"])
 app.include_router(enrollments.router, prefix="/enrollments", tags=["Enrollments"])

@@ -1,37 +1,28 @@
-version: "3.9"
+version: '3.8'
 
 services:
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+
   fastapi_app:
     build: .
     container_name: fastapi_app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app
     ports:
       - "8000:8000"
     depends_on:
-      - mongodb
-    env_file:
-      - .env 
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+      - mongo
 
   processor:
     build: .
-    container_name: enrollment_processor
+    container_name: processor
+    command: python processor/worker.py
+    volumes:
+      - .:/app
     depends_on:
-      - mongodb
-    volumes:
-      - ./app:/app
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017
-    command: ["python", "services/enrollment_processor.py"]
-
-  mongodb:
-    image: mongo:6.0
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-volumes:
-  mongo_data:
+      - mongo
