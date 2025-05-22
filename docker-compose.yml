@@ -1,11 +1,11 @@
-version: '3.8'
-
 services:
   mongo:
-    image: mongo
+    image: mongo:6.0
     container_name: mongo
     ports:
       - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
 
   fastapi_app:
     build: .
@@ -15,14 +15,47 @@ services:
       - .:/app
     ports:
       - "8000:8000"
+    environment:
+      - BASIC_AUTH_USERNAME=admin
+      - BASIC_AUTH_PASSWORD=1234
+      - MONGO_URI=mongodb://mongo:27017
     depends_on:
       - mongo
 
   processor:
     build: .
     container_name: processor
-    command: python processor/worker.py
+    command: python app/processor/worker.py
     volumes:
       - .:/app
     depends_on:
       - mongo
+    environment:
+      - PYTHONPATH=/app
+      - BASIC_AUTH_USERNAME=admin
+      - BASIC_AUTH_PASSWORD=1234
+      - MONGO_URI=mongodb://mongo:27017
+
+  tests:
+    build: .
+    container_name: test_runner
+    command: sh -c "
+      until curl -s http://fastapi_app:8000/docs > /dev/null; do
+        echo '🔄 Aguardando API...';
+        sleep 1;
+      done &&
+      pytest tests/"
+    environment:
+      - PYTHONPATH=/app
+      - BASIC_AUTH_USERNAME=admin
+      - BASIC_AUTH_PASSWORD=1234
+      - MONGO_URI=mongodb://mongo:27017
+    volumes:
+      - .:/app
+    depends_on:
+      - mongo
+      - fastapi_app
+      - processor
+
+volumes:
+  mongo_data:

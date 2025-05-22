@@ -1,9 +1,10 @@
-from enrollment_processor import process_enrollment
+from app.database import enrollments_collection
+from app.processor.enrollment_processor import process_enrollment
 from motor.motor_asyncio import AsyncIOMotorClient
+import asyncio
 import logging
 import os
-import time
-
+import random
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -12,24 +13,36 @@ client = AsyncIOMotorClient(MONGO_URI)
 db = client["suthub_db"]
 enrollments = db["enrollments"]
 
-def process_queue():
+async def process_one_enrollment(collection=None):
+    if collection is None:
+        client = AsyncIOMotorClient("mongodb://mongo:27017")
+        db = client["suthub_db"]
+        collection = db["enrollments"]
+
+    doc = await collection.find_one({"status": "processing"})
+    if not doc:
+        return False
+
+    logger.info(f"⌛ Processando inscrição: {doc.get('name', 'N/A')} ({doc.get('cpf', 'N/A')})")
+
+    # Simula tempo de processamento mínimo de 2 segundos
+    await asyncio.sleep(2)
+
+    new_status = random.choice(["accepted", "rejected"])
+
+    await collection.update_one(
+        {"_id": doc["_id"]},
+        {"$set": {"status": new_status}}
+    )
+
+    logger.info(f"✅ Inscrição de {doc.get('name', 'N/A')} atualizada para '{new_status}'")
+
+    return True
+
+
+async def process_queue():
     while True:
-        doc = db["enrollment_queue"].find_one_and_update(
-            {"status": "PENDING"},
-            {"$set": {"status": "PROCESSING"}},
-            sort=[("created_at", 1)]
-        )
-
-        if doc:
-            logger.info("⌛ Processando:", doc["data"])
-            time.sleep(2)  # ✅ Delay obrigatório
-            process_enrollment(doc["data"])
-            db["enrollment_queue"].update_one(
-                {"_id": doc["_id"]},
-                {"$set": {"status": "DONE"}}
-            )
-        else:
-            time.sleep(1)
-
-if __name__ == "__main__":
-    process_queue()
+        processed = await process_one_enrollment()
+        if not processed:
+            logger.info("📭 Nenhuma inscrição pendente. Aguardando...")
+            await asyncio.sleep(2)

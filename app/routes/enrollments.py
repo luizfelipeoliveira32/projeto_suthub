@@ -18,36 +18,13 @@ async def create_enrollment(data: EnrollmentRequest):
             detail="Idade não corresponde a nenhum grupo de idade registrado."
         )
 
-    enrollment_data = data.dict()
+    enrollment_data = data.model_dump()
     enrollment_data["status"] = "pendente"
 
     await enrollments_collection.insert_one(enrollment_data)
 
     return EnrollmentStatus(cpf=data.cpf, status="pendente")
 
-'''@router.post("/enroll", status_code=status.HTTP_201_CREATED)
-async def enroll_user(data: EnrollmentRequest):
-    # Verificar se já existe matrícula para esse CPF
-    existing = await enrollments_collection.find_one({"cpf": data.cpf})
-    if existing:
-        raise HTTPException(status_code=400, detail="Enrollment already exists")
-
-    # Verificar se a idade está em alguma faixa cadastrada
-    found_group = await age_groups_collection.find_one({
-        "min_age": {"$lte": data.age},
-        "max_age": {"$gte": data.age}
-    })
-
-    if not found_group:
-        raise HTTPException(status_code=400, detail="Age not allowed for enrollment")
-
-    # Inserir matrícula com status 'pending'
-    enrollment = data.dict()
-    enrollment["status"] = "pending"
-    await enrollments_collection.insert_one(enrollment)
-
-    return {"message": "Enrollment submitted", "status": "pending"}
-'''
 @router.get("/enroll/{cpf}", response_model=EnrollmentStatus, dependencies=[Depends(authenticate)])
 async def get_enrollment_status(cpf: str):
     enrollment = await enrollments_collection.find_one({"cpf": cpf})

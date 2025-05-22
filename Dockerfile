@@ -5,9 +5,11 @@ WORKDIR /app
 COPY requirements.txt .
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \     
     gcc \
     libffi-dev \
     build-essential \
+    bash \
     && pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt \
     && apt-get remove -y gcc build-essential \

@@ -27,13 +27,13 @@ Este projeto implementa uma API de matrículas com FastAPI, autenticação via B
 │   │   ├── enrollment_request.py
 │   │   └── enrollment_status.py
 │   ├── static/
-│   │   │-- images/
-│   │       │-- suthub-banner.PNG
+│   │   ├── images/
+│   │       ├── suthub-banner.PNG
 │   │
 │	├── services/
 │   │	└── enrollment_processor.py
-│   │-- templates/
-│   │   │-- index.html
+│   ├── templates/
+│   │   ├── index.html
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .env
@@ -56,9 +56,9 @@ BASIC_AUTH_USERNAME=admin
 BASIC_AUTH_PASSWORD=1234
 MONGO_URI=mongodb+srv://<usuário>:<senha>@<cluster>.mongodb.net/?retryWrites=true&w=majority
 
-#Se quiser, pode usar o endereço: mongodb+srv://admin:test1234!@cluster0.qg6itmv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+Se quiser, pode usar o endereço que informei no arquivo .txt anexado no arquivo que enviei por email.
+Por se tratar de uma secret key, não é recomendado que esteja exposto no Github.
 ```
-
 > Use a string de conexão do MongoDB cloud (Atlas, por exemplo) para testes persistentes.
 
 ---
@@ -76,13 +76,15 @@ docker-compose up --build
 Connect with Connection String
 
 A seguir, pedirá para você inserir a conexão com o banco MongoDB, nesse caso, poderá inserir e clicar Enter:
-mongodb+srv://admin:test1234!@cluster0.qg6itmv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+mongodb+srv://<usuário>:<senha>@<cluster>.mongodb.net/?retryWrites=true&w=majority
 ```
 
 ### 3. Acesse a página inicial do projeto:
 ```
 http://localhost:8000/
 ```
+
+Montei um template como página inicial, não deixe de conferir 
 
 ### 4. Acesse a documentação interativa:
 
@@ -116,7 +118,14 @@ Clique em **Authorize** e insira:
 
 ---
 
+### Para testar o envio de uma requisição de dados, olhe o arquivo app/processor/worker.py
 
+### Pode testar os endpoints via swagger após a inserção de credenciais.
+
+### O programa test_worker.py será rodado automaticamente após a aplicação se você utilizar o comando via terminal da etapa 1:
+```terminal
+docker-compose up --build
+```
 
 ---
 
@@ -128,6 +137,7 @@ Clique em **Authorize** e insira:
 ✔️ Processador assíncrono com espera de 2s
 ✔️ Autenticação via Basic Auth
 ✔️ MongoDB persistente usando `.env`
+✔️ Implementação de Teste com pytest do processador de matriculas app/processor/worker.py
 
 ---
 

@@ -10,8 +10,8 @@ router = APIRouter()
 @router.post("/age-groups", response_model=AgeGroupOut, status_code=status.HTTP_201_CREATED, 
              dependencies=[Depends(authenticate)])
 async def create_age_group(data: AgeGroupIn):
-    result = await age_groups_collection.insert_one(data.dict())
-    return AgeGroupOut(id=str(result.inserted_id), **data.dict())
+    result = await age_groups_collection.insert_one(data.model_dump())
+    return AgeGroupOut(id=str(result.inserted_id), **data.model_dump())
 
 # Listar faixas etárias
 @router.get("/age-groups", response_model=list[AgeGroupOut], dependencies=[Depends(authenticate)])
@@ -44,11 +44,11 @@ async def get_age_group(group_id: str):
 async def update_age_group(group_id: str, data: AgeGroupIn):
     result = await age_groups_collection.update_one(
         {"_id": ObjectId(group_id)},
-        {"$set": data.dict()}
+        {"$set": data.model_dump()}
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Age group not found")
-    return AgeGroupOut(id=group_id, **data.dict())
+    return AgeGroupOut(id=group_id, **data.model_dump())
 
 # Deletar faixa etária
 @router.delete("/age-groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT, 
